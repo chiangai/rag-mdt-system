@@ -1,82 +1,83 @@
 # 妇产科 AI 虚拟 MDT 多智能体会诊系统
 
-基于 Neo4j 知识图谱 + LangGraph 多智能体编排 + FastAPI + React，实现妇产科多学科会诊 (MDT) 的 AI 辅助系统。
+基于 Neo4j 知识图谱 + LangGraph 多智能体编排 + FastAPI + React，实现妇婴重症复杂并发症多学科会诊 (MDT) 的 AI 辅助系统。
 
-## 架构
+## 🌟 系统架构与特长
 
-系统由 5 个智能体协同工作：
+系统基于前沿的医疗 AI 架构设计，由 **7 个独立智能体 (Agents)** 组成动态并发网络：
 
-1. **导诊/规划智能体** — 接收患者主诉，提取医学实体，规划需要介入的科室
-2. **图谱查询智能体** — 将医学实体转化为 Cypher 查询，从知识图谱中检索循证知识
-3. **产科专家智能体** — 从产科角度评估孕妇和胎儿风险，给出诊疗建议
-4. **内分泌专家智能体** — 从代谢角度评估风险，给出控糖/控压等建议
-5. **医疗审查/安全智能体** — 交叉比对各专家建议和药物禁忌，确保输出安全
+1. **导诊/规划智能体** — 接收患者主诉，精准提取体征信息，动态决策需要介入的并行业务科室。
+2. **图谱查询智能体** — 将医学特征转化为 Cypher 或调用向量检索工具，从底层 Neo4j 图谱集群中打捞循证知识。
+3. **产科专家智能体** — 从产科角度出具母胎风险评估报告。
+4. **内分泌专家智能体** — 专注于妊娠期糖尿病、甲状腺疾病等代谢风险评估。
+5. **心内科专家智能体** — 对妊娠期高血压及心血管并发症出具干预指南。
+6. **肾内科专家智能体** — 对肾功能异常、重度子痫前期等出具专科意见。
+7. **医疗审查/安全智能体** — 从全局用药禁忌 (FDA 妊娠分级) 视角交叉比对全量意见，出具最终无冲突 MDT 报告。
 
-## 快速开始
+### 核心引擎：图谱精准匹配 + 向量语义检索 (Hybrid RAG)
 
-### 后端
+为破解口语化描述与僵硬标准名词之间的鸿沟，系统接入了**火山引擎 (Volcengine)** 多模态 Embedding 模型。
+在装载了 **12,500+ 医学节点、5,000+ 关系**的本地大图谱底座上，实现了 `kg_embedding` 高维语义 KNN 搜索与 Cypher 结构化查询的无缝互补。
+
+---
+
+## 🚀 快速启动
+
+详见项目根目录 [项目启动指南.md](./项目启动指南.md)，这里提供基础速查指令。
+
+### 1. 基础配置与数据导入
 
 ```bash
-# 1. 安装依赖
+# 安装依赖
 pip install -r requirements.txt
 
-# 2. 配置环境变量
+# 配置环境变量（配置火山引擎 ARK API 等）
 cp .env.example .env
-# 编辑 .env 填入 API Key 和 Neo4j 连接信息
-# 可选：ARK_SSL_VERIFY / ARK_CA_BUNDLE 控制 Embedding HTTPS 校验
-# 可选：CONSULT_DB_PATH / CONSULT_STORE_MAX_RECORDS 控制会诊持久化
 
-# 3. 导入示例知识图谱数据到 Neo4j
-# 将 data/sample_graph.cypher 内容在 Neo4j Browser 中执行
-
-# 4. 启动后端
-uvicorn app.main:app --reload
+# 灌入全量 1.25万节点真实医疗图谱并自动构建向量索引 (需开启 Neo4j)
+python scripts/import_kg_to_neo4j.py
+python scripts/embed_global_kg.py
 ```
 
-### 前端
+### 2. 启动服务
 
+**后端 (FastAPI)**:
+```bash
+conda activate rag_mdt
+uvicorn app.main:app --reload
+# 服务默认运行于 http://127.0.0.1:8000
+```
+
+**前端 (React/Vite)**:
 ```bash
 cd frontend
 npm install
 npm run dev
-# 访问 http://localhost:3000
+# 浏览器访问 http://localhost:3000
 ```
 
-前端开发模式自动代理 `/api` 请求到后端 `localhost:8000`，无需额外 CORS 配置。
+> 前后端分离架构，前端内置完整代理，无需配置跨域。
 
-## API
+---
 
-- `POST /api/v1/consult` — 同步会诊
-- `POST /api/v1/consult/stream` — SSE 流式会诊（前端实时展示进度）
-- `GET /api/v1/consult/{id}` — 查询历史会诊
-- `GET /api/v1/consult/{id}/trace` — 查看推理过程
-- `GET /health` — 健康检查
+## 💻 前端界面与特性
 
-会诊结果默认持久化到 SQLite（`data/consultations.db`），服务重启后仍可查询历史会诊记录。
+* **拟物化交互**：采用类似 macOS 窗口风格的聊天室与卡片系统。
+* **白盒化知识检索溯源**：右侧内置【知识图谱检索结果】面板，实时追踪图谱查询智能体使用了哪些 `图谱精准模板` 以及哪些医学词汇触发了 `向量语义检索`，保障医疗诊断的强解释性。
+* **本地化会诊档案局**：通过右上角的【历史记录】抽屉，随时调阅和回放保存在本地 SQLite 数据库中的既往流式重症接诊记录，支持风险等级标签。
 
-## 核心特色：语义向量搜索 (Vector Search)
+---
 
-系统集成了 **Neo4j 向量检索**，配合火山引擎 (Volcengine) 的多模态 Embedding 模型，极大提升了医学实体的召回率：
-- **语义匹配**：能够识别“口渴”与“多饮”、“大肚子”与“妊娠”之间的语义关联。
-- **自动降级**：当传统 Cypher 模板匹配失败时，智能体自动切换为向量检索。
-- **高性能**：在本地 Neo4j 中建立向量索引，支持毫秒级 KNN 检索。
+## 🛠 技术栈
 
-## 技术栈
-
-| 层 | 技术 |
+| 模块 | 核心技术构件 |
 |----|------|
-| 前端 | React + Vite + TailwindCSS |
-| 后端 | FastAPI + Uvicorn |
-| 智能体编排 | LangGraph (async) |
-| LLM 抽象层 | LangChain |
-| 知识图谱 | Neo4j + Vector Index |
-| 推荐 LLM | DeepSeek-V3 (deepseek-chat) |
-| 向量模型 | Volcengine Multimodal Embedding |
+| **编排引擎** | LangGraph (StateGraph 状态图与并行扇出流控) |
+| **底层抽象** | LangChain Core |
+| **持久化数据** | Neo4j (知识图谱与向量索引) + SQLite (会诊状态流记录) |
+| **后端框架** | FastAPI + Uvicorn + SSE 流推送 |
+| **前端交互** | React 18 + Vite + TailwindCSS |
+| **大脑中枢** | 火山引擎 ARK SDK (模型: ep-20260102174906-jhc4g 等) |
 
-## 快速开发与同步
-
-```bash
-# 向量化图谱数据
-python scripts/setup_vector_index.py
-python scripts/sync_embeddings.py
-```
+---
+*本项目作为一个高度完整的 RAG 联合多智能体架构模板，可直接用于临床决策支持系统 (CDSS) 的原型演示及高校相关课题的基础底座。*
