@@ -25,3 +25,8 @@ frontend/.env.local
 .vscode/
 *.swp
 claude.md
+项目启动指南.md
+
+# Data and SQLite
+*.db
+*.json

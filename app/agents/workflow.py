@@ -19,6 +19,8 @@ from app.agents.router_agent import router_agent
 from app.agents.graph_query_agent import graph_query_agent
 from app.agents.obstetrician_agent import obstetrician_agent
 from app.agents.endocrinologist_agent import endocrinologist_agent
+from app.agents.cardiologist_agent import cardiologist_agent
+from app.agents.nephrologist_agent import nephrologist_agent
 from app.agents.reviewer_agent import reviewer_agent
 from app.models.state import MDTState
 
@@ -32,6 +34,8 @@ logger = logging.getLogger(__name__)
 SPECIALIST_AGENTS: dict[str, tuple[str, Any]] = {
     "obstetrics": ("obstetrician", obstetrician_agent),
     "endocrinology": ("endocrinologist", endocrinologist_agent),
+    "cardiology": ("cardiologist", cardiologist_agent),
+    "nephrology": ("nephrologist", nephrologist_agent),
 }
 
 DEPARTMENT_NODE_MAP: dict[str, str] = {

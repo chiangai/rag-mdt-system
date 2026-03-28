@@ -7,6 +7,8 @@ const AGENT_LABELS = {
   graph_query: '图谱查询智能体',
   obstetrician: '产科专家智能体',
   endocrinologist: '内分泌专家智能体',
+  cardiologist: '心内科专家智能体',
+  nephrologist: '肾内科专家智能体',
   reviewer: '医疗审查/安全智能体',
   done: '会诊完成',
   error: '系统错误',
@@ -16,6 +18,7 @@ export function useConsultation() {
   const [status, setStatus] = useState('idle') // idle | loading | streaming | done | error
   const [events, setEvents] = useState([])
   const [report, setReport] = useState(null)
+  const [graphKnowledge, setGraphKnowledge] = useState(null)
   const [error, setError] = useState(null)
   const [complaint, setComplaint] = useState('')
   const abortRef = useRef(null)
@@ -25,6 +28,7 @@ export function useConsultation() {
     setStatus('idle')
     setEvents([])
     setReport(null)
+    setGraphKnowledge(null)
     setError(null)
     setComplaint('')
   }, [])
@@ -76,6 +80,11 @@ export function useConsultation() {
 
             setEvents((prev) => [...prev, event])
 
+            // Extract graph knowledge when graph_query_agent fires
+            if (node === 'graph_query' && data?.graph_knowledge) {
+              setGraphKnowledge(data.graph_knowledge)
+            }
+
             if (node === 'reviewer' && data?.final_report) {
               setReport(data.final_report)
             }
@@ -124,5 +133,5 @@ export function useConsultation() {
     }
   }, [reset])
 
-  return { status, events, report, error, complaint, submitStream, submitSync, reset }
+  return { status, events, report, graphKnowledge, error, complaint, submitStream, submitSync, reset }
 }

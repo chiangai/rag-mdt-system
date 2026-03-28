@@ -23,6 +23,8 @@ pip install -r requirements.txt
 # 2. 配置环境变量
 cp .env.example .env
 # 编辑 .env 填入 API Key 和 Neo4j 连接信息
+# 可选：ARK_SSL_VERIFY / ARK_CA_BUNDLE 控制 Embedding HTTPS 校验
+# 可选：CONSULT_DB_PATH / CONSULT_STORE_MAX_RECORDS 控制会诊持久化
 
 # 3. 导入示例知识图谱数据到 Neo4j
 # 将 data/sample_graph.cypher 内容在 Neo4j Browser 中执行
@@ -49,6 +51,8 @@ npm run dev
 - `GET /api/v1/consult/{id}` — 查询历史会诊
 - `GET /api/v1/consult/{id}/trace` — 查看推理过程
 - `GET /health` — 健康检查
+
+会诊结果默认持久化到 SQLite（`data/consultations.db`），服务重启后仍可查询历史会诊记录。
 
 ## 核心特色：语义向量搜索 (Vector Search)
 

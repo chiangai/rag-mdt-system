@@ -5,6 +5,15 @@ from config.settings import settings
 
 logger = logging.getLogger(__name__)
 
+
+def _resolve_tls_verify() -> bool | str:
+    if settings.llm.ark_ca_bundle:
+        return settings.llm.ark_ca_bundle
+    if not settings.llm.ark_ssl_verify:
+        logger.warning("ARK SSL verification is disabled. This is unsafe in production.")
+    return settings.llm.ark_ssl_verify
+
+
 async def get_embedding(text: str) -> list[float]:
     """Get embedding vector for the given text using the configured Volcengine model."""
     url = "https://ark.cn-beijing.volces.com/api/v3/embeddings/multimodal"
@@ -29,7 +38,8 @@ async def get_embedding(text: str) -> list[float]:
         ]
     }
     
-    async with httpx.AsyncClient(verify=False) as client:
+    verify = _resolve_tls_verify()
+    async with httpx.AsyncClient(verify=verify) as client:
         response = await client.post(url, headers=headers, json=data, timeout=30.0)
         response.raise_for_status()
         res_json = response.json()

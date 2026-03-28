@@ -7,6 +7,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def _env_bool(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 @dataclass
 class Neo4jSettings:
     uri: str = field(default_factory=lambda: os.getenv("NEO4J_URI", "bolt://localhost:7687"))
@@ -29,6 +36,8 @@ class LLMSettings:
     embedding_dimension: int = field(default_factory=lambda: int(os.getenv("EMBEDDING_DIMENSION", "1536")))
     ark_api_key: str = field(default_factory=lambda: os.getenv("ARK_API_KEY", ""))
     ark_embedding_model: str = field(default_factory=lambda: os.getenv("ARK_EMBEDDING_MODEL", "ep-20260322180151-gggrl"))
+    ark_ssl_verify: bool = field(default_factory=lambda: _env_bool("ARK_SSL_VERIFY", True))
+    ark_ca_bundle: str = field(default_factory=lambda: os.getenv("ARK_CA_BUNDLE", "").strip())
 
     temperature: float = 0.1
 
@@ -37,6 +46,8 @@ class LLMSettings:
 class AppSettings:
     host: str = field(default_factory=lambda: os.getenv("HOST", "0.0.0.0"))
     port: int = field(default_factory=lambda: int(os.getenv("PORT", "8000")))
+    consult_db_path: str = field(default_factory=lambda: os.getenv("CONSULT_DB_PATH", "data/consultations.db"))
+    consult_store_max_records: int = field(default_factory=lambda: int(os.getenv("CONSULT_STORE_MAX_RECORDS", "5000")))
 
 
 @dataclass

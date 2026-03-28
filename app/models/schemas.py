@@ -94,9 +94,15 @@ class ConsultRequest(BaseModel):
     )
 
 
+class TraceEvent(BaseModel):
+    node: str
+    timestamp: str
+    data: dict
+
+
 class ConsultResponse(BaseModel):
     consultation_id: str
     status: str = "completed"
     report: MDTReport | None = None
-    trace: list[dict] = Field(default_factory=list, description="智能体推理过程")
+    trace: list[TraceEvent] = Field(default_factory=list, description="智能体推理过程")
     errors: list[str] = Field(default_factory=list)

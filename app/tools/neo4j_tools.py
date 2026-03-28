@@ -140,9 +140,6 @@ async def vector_search(entity_type: str, query: str) -> str:
     Returns:
         JSON-formatted list of similar node names and their similarity scores.
     """
-    if entity_type not in ["Disease", "Symptom"]:
-        return "错误：entity_type 必须是 'Disease' 或 'Symptom'"
-        
     try:
         from app.agents.embedding import get_embedding
         vector = await get_embedding(query)
@@ -150,12 +147,14 @@ async def vector_search(entity_type: str, query: str) -> str:
         logger.error("Failed to get embedding for query '%s': %s", query, e)
         return f"获取向量失败: {e}"
         
-    index_name = f"vector_{entity_type.lower()}_name"
-    cypher = f"""
+    # The new unified import script creates the 'kg_embedding' index on KGNode
+    index_name = "kg_embedding"
+    cypher = """
         CALL db.index.vector.queryNodes($index_name, 3, $vector)
         YIELD node, score
         WHERE score > 0.5
-        RETURN node.name AS name, score
+        // Optional: you can filter by node.main_category if needed
+        RETURN node.name AS name, score, node.main_category AS category
     """
     
     try:

@@ -1,11 +1,15 @@
+import { useState } from 'react'
 import { useConsultation } from './hooks/useConsultation'
 import ConsultInput from './components/ConsultInput'
 import ChatRoom from './components/ChatRoom'
 import ExpertCards from './components/ExpertCards'
 import MDTReport from './components/MDTReport'
+import KnowledgeGraphPanel from './components/KnowledgeGraphPanel'
+import HistoryDrawer from './components/HistoryDrawer'
 
 export default function App() {
-  const { status, events, report, error, submitStream, reset, complaint } = useConsultation()
+  const { status, events, report, graphKnowledge, error, submitStream, reset, complaint } = useConsultation()
+  const [historyOpen, setHistoryOpen] = useState(false)
 
   const isActive = status === 'streaming' || status === 'loading'
 
@@ -33,16 +37,28 @@ export default function App() {
             </h1>
           </div>
 
-          {/* Reset Button */}
-          {status !== 'idle' && (
+          {/* Reset Button + History Button */}
+          <div className="absolute right-4 flex items-center gap-2">
             <button
-              onClick={reset}
-              className="absolute right-4 text-[11px] font-medium text-gray-600 bg-white/80 hover:bg-white
-                         px-3 py-1 rounded-md border border-gray-300 shadow-sm transition-all active:scale-95"
+              onClick={() => setHistoryOpen(true)}
+              className="text-[11px] font-medium text-gray-600 bg-white/80 hover:bg-white
+                         px-3 py-1 rounded-md border border-gray-300 shadow-sm transition-all active:scale-95 flex items-center gap-1"
             >
-              新建会诊
+              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              历史记录
             </button>
-          )}
+            {status !== 'idle' && (
+              <button
+                onClick={reset}
+                className="text-[11px] font-medium text-gray-600 bg-white/80 hover:bg-white
+                           px-3 py-1 rounded-md border border-gray-300 shadow-sm transition-all active:scale-95"
+              >
+                新建会诊
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Main Content Area */}
@@ -96,6 +112,13 @@ export default function App() {
                 </div>
               )}
 
+              {/* Knowledge graph results */}
+              {graphKnowledge && (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-600">
+                  <KnowledgeGraphPanel graphKnowledge={graphKnowledge} />
+                </div>
+              )}
+
               {/* Final report */}
               {report && (
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200 fill-mode-both">
@@ -136,6 +159,8 @@ export default function App() {
 
         </main>
       </div>
+
+      <HistoryDrawer open={historyOpen} onClose={() => setHistoryOpen(false)} />
     </div>
   )
 }

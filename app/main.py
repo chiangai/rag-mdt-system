@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import router
+from app.api.routes import router, init_consultation_store
 from app.graph_db.connection import Neo4jConnection
 from config.settings import settings
 
@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     """Startup / shutdown lifecycle."""
     logger.info("Starting MDT consultation service")
+    await init_consultation_store()
     if await Neo4jConnection.verify_connectivity():
         logger.info("Neo4j connection OK")
     else:
