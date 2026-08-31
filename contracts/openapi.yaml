@@ -1,0 +1,18 @@
+openapi: 3.0.3
+info:
+  title: HerCare API
+  version: 1.0.0
+paths:
+  /api/v1/profile: { get: { responses: { '200': { description: OK } } } }
+  /api/v1/home: { get: { responses: { '200': { description: OK } } } }
+  /api/v1/check-ins: { post: { responses: { '201': { description: Created } } } }
+  /api/v1/timeline: { get: { responses: { '200': { description: OK } } } }
+  /api/v1/care-plan: { get: { responses: { '200': { description: OK } } } }
+  /api/v1/care-plan/items/{item_id}:
+    patch:
+      parameters: [{ name: item_id, in: path, required: true, schema: { type: string } }]
+      responses: { '200': { description: OK } }
+  /api/v1/product: { get: { responses: { '200': { description: OK } } } }
+  /api/v1/chat/stream: { post: { responses: { '200': { description: SSE } } } }
+  /api/v1/conversations/{conversation_id}: { get: { responses: { '200': { description: OK } } } }
+  /api/v1/traces/{trace_id}: { get: { responses: { '200': { description: OK } } } }
