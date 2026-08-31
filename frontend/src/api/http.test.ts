@@ -2,6 +2,19 @@ import { describe, expect, it, vi } from 'vitest'
 import { HttpTransport } from './http'
 
 describe('HttpTransport', () => {
+  it('does not invoke a default browser fetch with the transport instance as this', async () => {
+    let receiver: unknown
+    const fetcher = function (this: unknown) {
+      receiver = this
+      return Promise.resolve(new Response(JSON.stringify({ name: '小禾', postpartum_week: 8 }), { status: 200 }))
+    } as unknown as typeof fetch
+    const api = new HttpTransport('/api/v1', fetcher)
+
+    await api.getProfile()
+
+    expect(receiver).not.toBe(api)
+  })
+
   it('posts a chat message and maps streamed token events', async () => {
     const encoder = new TextEncoder()
     const fetcher = vi.fn().mockResolvedValue(new Response(new ReadableStream({

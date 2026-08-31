@@ -18,7 +18,7 @@ export class HttpTransport implements HerCareTransport {
   constructor(private readonly baseUrl = '/api/v1', private readonly fetcher: Fetcher = fetch) {}
 
   private async request<T>(path: string, init?: RequestInit): Promise<T> {
-    const response = await this.fetcher(`${this.baseUrl}${path}`, {
+    const response = await this.fetcher.call(globalThis, `${this.baseUrl}${path}`, {
       ...init,
       headers: { 'Content-Type': 'application/json', ...init?.headers },
     })
@@ -60,7 +60,7 @@ export class HttpTransport implements HerCareTransport {
   }
 
   async *streamChat(message: string, signal: AbortSignal): AsyncGenerator<ChatEvent> {
-    const response = await this.fetcher(`${this.baseUrl}/chat/stream`, {
+    const response = await this.fetcher.call(globalThis, `${this.baseUrl}/chat/stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
       body: JSON.stringify({ message, client_turn_id: crypto.randomUUID() }),
