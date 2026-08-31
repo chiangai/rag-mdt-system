@@ -26,20 +26,36 @@ export class HttpTransport implements HerCareTransport {
     return response.json() as Promise<T>
   }
 
-  getProfile() { return this.request<Profile>('/profile') }
-  getHome() { return this.request<HomeData>('/home') }
-  getTimeline() { return this.request<TimelineEvent[]>('/timeline') }
-  getCarePlan() { return this.request<CarePlan>('/care-plan') }
-  getProduct() { return this.request<ProductData>('/product') }
+  async getProfile() {
+    const data = await this.request<{ name: string; postpartum_week: number; concerns?: string[] }>('/profile')
+    return { name: data.name, postpartumWeek: data.postpartum_week, careTeam: 'HerCare 产后照护团队' }
+  }
+  async getHome() {
+    const data = await this.request<{ profile: { postpartum_week: number }; quick_actions: string[] }>('/home')
+    return { greeting: `产后第 ${data.profile.postpartum_week} 周，今天感觉怎么样？`, focus: data.quick_actions, nextAppointment: '本周 · 产后复查提醒' }
+  }
+  async getTimeline() {
+    const data = await this.request<{ items: Array<{ id: string; occurred_at: string; title: string; detail: string; kind: string }> }>('/timeline')
+    return data.items.map((item) => ({ id: item.id, date: item.occurred_at, title: item.title, description: item.detail, kind: item.kind === 'check_in' ? 'check-in' : 'plan' } as TimelineEvent))
+  }
+  async getCarePlan() {
+    const data = await this.request<{ items: Array<{ id: string; title: string; description: string; cadence: string; completed: boolean }> }>('/care-plan')
+    return { title: '第 8 周产后恢复计划', items: data.items.map((item) => ({ id: item.id, title: item.title, detail: item.description, due: item.cadence, complete: item.completed })) }
+  }
+  async getProduct() {
+    const data = await this.request<{ items: Array<{ name: string; summary: string; disclaimer: string }> }>('/product')
+    const item = data.items[0]
+    return { name: item?.name ?? 'HerCare 7日恢复营养餐', subtitle: item?.summary ?? '', bullets: item ? [item.disclaimer] : [] }
+  }
 
   createCheckIn(draft: CheckInDraft) {
-    return this.request<CheckIn>('/check-ins', { method: 'POST', body: JSON.stringify(draft) })
+    return this.request<CheckIn>('/check-ins', { method: 'POST', headers: { 'Idempotency-Key': crypto.randomUUID() }, body: JSON.stringify(draft) })
   }
 
   updateCarePlanItem(itemId: string, complete: boolean) {
     return this.request<CarePlanItem>(`/care-plan/items/${encodeURIComponent(itemId)}`, {
       method: 'PATCH',
-      body: JSON.stringify({ complete }),
+      body: JSON.stringify({ completed: complete }),
     })
   }
 
@@ -47,7 +63,7 @@ export class HttpTransport implements HerCareTransport {
     const response = await this.fetcher(`${this.baseUrl}/chat/stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'text/event-stream' },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({ message, client_turn_id: crypto.randomUUID() }),
       signal,
     })
     if (!response.ok) throw new Error(`对话请求失败（${response.status}）`)
@@ -86,11 +102,10 @@ export class HttpTransport implements HerCareTransport {
 
 function mapEvent(event: SseEvent): ChatEvent | undefined {
   const data = event.data as Record<string, unknown>
-  if (event.event === 'token' && typeof data?.text === 'string') return { type: 'token', text: data.text }
-  if (event.event === 'trace' && typeof data?.traceId === 'string' && typeof data?.label === 'string') {
-    return { type: 'trace', traceId: data.traceId, label: data.label, status: data.status === 'completed' ? 'completed' : 'started' }
-  }
-  if (event.event === 'done' && typeof data?.conversationId === 'string') return { type: 'done', conversationId: data.conversationId }
+  if (event.event === 'message.delta' && typeof data?.text === 'string') return { type: 'token', text: data.text }
+  if (event.event === 'message.start' && typeof data?.trace_id === 'string') return { type: 'trace', traceId: data.trace_id, label: typeof data.route === 'string' ? data.route : 'routing', status: 'started' }
+  if (event.event === 'message.completed' && typeof data?.conversation_id === 'string') return { type: 'done', conversationId: data.conversation_id }
+  if (event.event === 'safety.escalation') return { type: 'error', message: '请尽快联系医生或急诊评估。' }
   if (event.event === 'error' && typeof data?.message === 'string') return { type: 'error', message: data.message }
   return undefined
 }

@@ -29,7 +29,7 @@ def test_chat_stream_emits_whitelisted_events_and_persists_trace(client: TestCli
     assert response.headers["content-type"].startswith("text/event-stream")
     events = parse_sse(response.text)
     assert {name for name, _ in events} <= ALLOWED_SSE_EVENTS
-    assert events[-1][0] == "done"
+    assert events[-1][0] == "message.completed"
     trace_id = events[-1][1]["trace_id"]
     conversation = client.get("/api/v1/conversations/conversation-api")
     trace = client.get(f"/api/v1/traces/{trace_id}")

@@ -35,7 +35,7 @@ export function HomePage({ onAsk }: { onAsk: () => void }) {
   const home = useResource<HomeData>(() => api.getHome())
   return <section className="page-stack">
     <PageHeading eyebrow="你的连续照护空间" title={profile.data ? `${profile.data.name}，${home.data?.greeting ?? ''}` : '欢迎来到 HerCare'}>
-      <p>{profile.data ? `孕 ${profile.data.pregnancyWeek} 周 · ${profile.data.careTeam}` : '把今天的感受、疑问和照护计划放在同一个地方。'}</p>
+      <p>{profile.data ? `产后第 ${profile.data.postpartumWeek} 周 · ${profile.data.careTeam}` : '把今天的感受、疑问和照护计划放在同一个地方。'}</p>
     </PageHeading>
     <LoadState loading={profile.loading || home.loading} error={profile.error ?? home.error} />
     {home.data && <>
@@ -52,7 +52,7 @@ export function HomePage({ onAsk }: { onAsk: () => void }) {
 }
 
 export function CheckInPage() {
-  const [week, setWeek] = useState(32)
+  const [week, setWeek] = useState(8)
   const [mood, setMood] = useState('平稳')
   const [symptoms, setSymptoms] = useState('')
   const [note, setNote] = useState('')
@@ -69,7 +69,7 @@ export function CheckInPage() {
     <PageHeading eyebrow="每日签到" title="给自己一分钟，记录今天的变化"><p>这些信息用于帮助你回顾和准备与医生的沟通。</p></PageHeading>
     <aside className="safety-note" aria-label="紧急情况提示"><strong>如果出现大量出血、持续剧烈腹痛、呼吸困难、晕厥或胎动明显减少，</strong>请立即联系急救服务或前往急诊；不要等待线上回复。</aside>
     <form className="form-card" onSubmit={submit}>
-      <label>孕周<input type="number" min="1" max="45" value={week} onChange={(event) => setWeek(Number(event.target.value))} required /></label>
+      <label>产后周数<input type="number" min="0" max="52" value={week} onChange={(event) => setWeek(Number(event.target.value))} required /></label>
       <fieldset><legend>此刻的心情</legend><div className="choice-row">{['平稳', '疲惫', '焦虑', '开心'].map((item) => <label className="choice" key={item}><input type="radio" name="mood" value={item} checked={mood === item} onChange={() => setMood(item)} />{item}</label>)}</div></fieldset>
       <label>身体感受或症状<textarea value={symptoms} onChange={(event) => setSymptoms(event.target.value)} placeholder="例如：腰酸、睡眠不稳、头痛等" rows={4} /></label>
       <label>想补充的内容（可选）<textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="今天有什么想记下来的？" rows={3} /></label>

@@ -13,11 +13,11 @@ import type {
 
 const redFlagPattern = /出血|腹痛|胸痛|呼吸困难|晕厥|头痛|视物模糊|胎动.*少/
 
-const profile: Profile = { name: '林女士', pregnancyWeek: 32, careTeam: 'HerCare 产科团队' }
+const profile: Profile = { name: '小禾', postpartumWeek: 8, careTeam: 'HerCare 产后照护团队' }
 const home: HomeData = {
-  greeting: '今天感觉怎么样？',
-  focus: ['记录身体变化', '完成本周产检准备', '有疑问随时提问'],
-  nextAppointment: '周五 09:30 · 产科复诊',
+  greeting: '产后第 8 周，今天感觉怎么样？',
+  focus: ['记录身体变化', '完成今日恢复计划', '有疑问随时提问'],
+  nextAppointment: '本周 · 产后复查提醒',
 }
 const timeline: TimelineEvent[] = [
   { id: 'visit-1', date: '2026-08-28', title: '常规产检', description: '血压与胎心监测结果已记录。', kind: 'visit' },

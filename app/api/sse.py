@@ -5,7 +5,7 @@ import json
 from app.runtime.harness import RunResult
 
 
-ALLOWED_SSE_EVENTS = frozenset({"status", "message_delta", "citation", "safety_alert", "done", "error"})
+ALLOWED_SSE_EVENTS = frozenset({"message.start", "message.delta", "safety.escalation", "message.completed", "error"})
 
 
 def encode_event(event: str, data: dict) -> str:
@@ -15,10 +15,8 @@ def encode_event(event: str, data: dict) -> str:
 
 
 def result_events(result: RunResult):
-    yield encode_event("status", {"route": result.route, "degraded": result.degraded, "replayed": result.replayed})
+    yield encode_event("message.start", {"conversation_id": result.conversation_id, "trace_id": result.trace_id, "route": result.route})
     if result.safety_alert:
-        yield encode_event("safety_alert", result.safety_alert)
-    yield encode_event("message_delta", {"text": result.text})
-    for citation in result.citations:
-        yield encode_event("citation", citation)
-    yield encode_event("done", {"conversation_id": result.conversation_id, "trace_id": result.trace_id})
+        yield encode_event("safety.escalation", result.safety_alert)
+    yield encode_event("message.delta", {"text": result.text})
+    yield encode_event("message.completed", {"conversation_id": result.conversation_id, "trace_id": result.trace_id, "answer": result.text, "citations": result.citations, "status": "degraded" if result.degraded else "completed"})

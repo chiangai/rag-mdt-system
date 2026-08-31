@@ -2,7 +2,7 @@ export type RiskLevel = 'routine' | 'watch' | 'urgent'
 
 export type Profile = {
   name: string
-  pregnancyWeek: number
+  postpartumWeek: number
   careTeam: string
 }
 

@@ -22,7 +22,7 @@ class HerCareRepository:
         row = self.session.scalar(select(Profile).limit(1))
         if row is None:
             raise LookupError("profile not found")
-        return {"id": row.id, "name": row.name, "pregnancy_week": row.pregnancy_week, "due_date": row.due_date, "concerns": row.concerns}
+        return {"id": row.id, "name": row.name, "postpartum_week": row.pregnancy_week, "due_date": row.due_date, "concerns": row.concerns}
 
     def timeline(self) -> list[dict]:
         rows = self.session.scalars(select(TimelineEvent).order_by(TimelineEvent.occurred_at.desc())).all()

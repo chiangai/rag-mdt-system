@@ -15,8 +15,11 @@ def build_chat_router(harness: Harness, repository: Callable[[], HerCareReposito
     router = APIRouter(prefix="/api/v1")
 
     @router.post("/chat/stream")
-    def chat_stream(payload: ChatRequest, idempotency_key: str = Header(min_length=1, max_length=128)) -> StreamingResponse:
-        result = harness.run(message=payload.message, conversation_id=payload.conversation_id, idempotency_key=idempotency_key)
+    def chat_stream(payload: ChatRequest, idempotency_key: str | None = Header(default=None, min_length=1, max_length=128)) -> StreamingResponse:
+        key = idempotency_key or payload.client_turn_id
+        if not key:
+            raise HTTPException(status_code=400, detail="client_turn_id or Idempotency-Key is required")
+        result = harness.run(message=payload.message, conversation_id=payload.conversation_id, idempotency_key=key)
         return StreamingResponse(result_events(result), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
 
     @router.get("/conversations/{conversation_id}")

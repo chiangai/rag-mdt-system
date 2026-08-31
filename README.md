@@ -1,83 +1,27 @@
-# 妇产科 AI 虚拟 MDT 多智能体会诊系统
+# HerCare
 
-基于 Neo4j 知识图谱 + LangGraph 多智能体编排 + FastAPI + React，实现妇婴重症复杂并发症多学科会诊 (MDT) 的 AI 辅助系统。
+HerCare 是一个可完整演示的 C 端产后健康 AI 产品原型，面向求职展示，不宣称真实医疗生产合规。
 
-## 🌟 系统架构与特长
+## 调用边界
 
-系统基于前沿的医疗 AI 架构设计，由 **7 个独立智能体 (Agents)** 组成动态并发网络：
+固定页面（Home、Check-in、Timeline、Care Plan、Product）走普通 FastAPI REST，不调用 Agent。只有 Ask HerCare 进入 Harness → LangGraph：MasterAgent 负责路由，ChatAgent 负责闲聊，HealthAgent 独占医学 Hybrid RAG，CommerceAgent 只查询一个演示营养餐商品。Memory、Safety、Trace、Retry 都由 Harness 负责。
 
-1. **导诊/规划智能体** — 接收患者主诉，精准提取体征信息，动态决策需要介入的并行业务科室。
-2. **图谱查询智能体** — 将医学特征转化为 Cypher 或调用向量检索工具，从底层 Neo4j 图谱集群中打捞循证知识。
-3. **产科专家智能体** — 从产科角度出具母胎风险评估报告。
-4. **内分泌专家智能体** — 专注于妊娠期糖尿病、甲状腺疾病等代谢风险评估。
-5. **心内科专家智能体** — 对妊娠期高血压及心血管并发症出具干预指南。
-6. **肾内科专家智能体** — 对肾功能异常、重度子痫前期等出具专科意见。
-7. **医疗审查/安全智能体** — 从全局用药禁忌 (FDA 妊娠分级) 视角交叉比对全量意见，出具最终无冲突 MDT 报告。
+## 本地启动
 
-### 核心引擎：图谱精准匹配 + 向量语义检索 (Hybrid RAG)
-
-为破解口语化描述与僵硬标准名词之间的鸿沟，系统接入了**火山引擎 (Volcengine)** 多模态 Embedding 模型。
-在装载了 **12,500+ 医学节点、5,000+ 关系**的本地大图谱底座上，实现了 `kg_embedding` 高维语义 KNN 搜索与 Cypher 结构化查询的无缝互补。
-
----
-
-## 🚀 快速启动
-
-详见项目根目录 [项目启动指南.md](./项目启动指南.md)，这里提供基础速查指令。
-
-### 1. 基础配置与数据导入
-
-```bash
-# 安装依赖
+```powershell
 pip install -r requirements.txt
-
-# 配置环境变量（配置火山引擎 ARK API 等）
-cp .env.example .env
-
-# 灌入全量 1.25万节点真实医疗图谱并自动构建向量索引 (需开启 Neo4j)
-python scripts/import_kg_to_neo4j.py
-python scripts/embed_global_kg.py
+uvicorn app.api.main:app --reload
+cd frontend; npm install; npm run dev
 ```
 
-### 2. 启动服务
+默认前端使用 Mock Transport；设置 `VITE_TRANSPORT=http` 后连接 API。KG 资产通过绝对路径 `HERCARE_KG_SOURCE_DIR` 只读挂载；不要将 660MB embedded JSON 提交到 Git。
 
-**后端 (FastAPI)**:
-```bash
-conda activate rag_mdt
-uvicorn app.main:app --reload
-# 服务默认运行于 http://127.0.0.1:8000
+## 验证
+
+```powershell
+python -m pytest tests/backend tests/retrieval -q
+cd frontend; npm test; npm run lint; npm run build
+docker compose up --build
 ```
 
-**前端 (React/Vite)**:
-```bash
-cd frontend
-npm install
-npm run dev
-# 浏览器访问 http://localhost:3000
-```
-
-> 前后端分离架构，前端内置完整代理，无需配置跨域。
-
----
-
-## 💻 前端界面与特性
-
-* **拟物化交互**：采用类似 macOS 窗口风格的聊天室与卡片系统。
-* **白盒化知识检索溯源**：右侧内置【知识图谱检索结果】面板，实时追踪图谱查询智能体使用了哪些 `图谱精准模板` 以及哪些医学词汇触发了 `向量语义检索`，保障医疗诊断的强解释性。
-* **本地化会诊档案局**：通过右上角的【历史记录】抽屉，随时调阅和回放保存在本地 SQLite 数据库中的既往流式重症接诊记录，支持风险等级标签。
-
----
-
-## 🛠 技术栈
-
-| 模块 | 核心技术构件 |
-|----|------|
-| **编排引擎** | LangGraph (StateGraph 状态图与并行扇出流控) |
-| **底层抽象** | LangChain Core |
-| **持久化数据** | Neo4j (知识图谱与向量索引) + SQLite (会诊状态流记录) |
-| **后端框架** | FastAPI + Uvicorn + SSE 流推送 |
-| **前端交互** | React 18 + Vite + TailwindCSS |
-| **大脑中枢** | 火山引擎 ARK SDK (模型: ep-20260102174906-jhc4g 等) |
-
----
-*本项目作为一个高度完整的 RAG 联合多智能体架构模板，可直接用于临床决策支持系统 (CDSS) 的原型演示及高校相关课题的基础底座。*
+引用仅展示现有知识图谱来源名，并明确标记 `source_name_only`（未收录原文定位）。

@@ -6,7 +6,7 @@ describe('HttpTransport', () => {
     const encoder = new TextEncoder()
     const fetcher = vi.fn().mockResolvedValue(new Response(new ReadableStream({
       start(controller) {
-        controller.enqueue(encoder.encode('event: token\ndata: {"text":"已收到"}\n\n'))
+        controller.enqueue(encoder.encode('event: message.delta\ndata: {"text":"已收到"}\n\n'))
         controller.close()
       },
     }), { status: 200 }))
@@ -27,7 +27,7 @@ describe('HttpTransport', () => {
     let closeStream: () => void = () => {}
     const fetcher = vi.fn().mockResolvedValue(new Response(new ReadableStream({
       start(controller) {
-        controller.enqueue(encoder.encode('event: token\ndata: {"text":"增量"}\n\n'))
+        controller.enqueue(encoder.encode('event: message.delta\ndata: {"text":"增量"}\n\n'))
         closeStream = () => controller.close()
       },
     }), { status: 200 }))

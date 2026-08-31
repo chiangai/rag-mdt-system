@@ -19,7 +19,7 @@ def test_seeded_fixed_pages_are_available_without_running_agents(client: TestCli
     assert profile.status_code == 200
     assert profile.json()["name"] == "小禾"
     assert home.status_code == 200
-    assert home.json()["profile"]["pregnancy_week"] == 24
+    assert home.json()["profile"]["postpartum_week"] == 8
     assert timeline.status_code == 200
     assert timeline.json()["items"]
     assert care_plan.status_code == 200
