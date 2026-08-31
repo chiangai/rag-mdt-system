@@ -30,3 +30,4 @@ claude.md
 # Data and SQLite
 *.db
 *.json
+.worktrees/
