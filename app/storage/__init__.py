@@ -1,6 +1,5 @@
-"""Consultation persistence backends."""
+"""SQLite persistence adapters for HerCare."""
 
-from app.storage.base import ConsultationStore
-from app.storage.sqlite_store import SQLiteConsultationStore
+from app.storage.database import Base, build_engine, build_session_factory
 
-__all__ = ["ConsultationStore", "SQLiteConsultationStore"]
+__all__ = ["Base", "build_engine", "build_session_factory"]

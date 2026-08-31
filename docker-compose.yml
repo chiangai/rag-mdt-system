@@ -1,0 +1,28 @@
+services:
+  api:
+    build: .
+    ports: ["8000:8000"]
+    environment:
+      HERCARE_KG_SOURCE_DIR: /assets
+      HERCARE_DATABASE_URL: sqlite:///./data/hercare.db
+      NEO4J_URI: bolt://neo4j:7687
+    volumes:
+      - hercare_sqlite:/app/data
+      - ${HERCARE_KG_SOURCE_DIR:-.}:/assets:ro
+    depends_on:
+      neo4j:
+        condition: service_healthy
+  neo4j:
+    image: neo4j:5-community
+    environment:
+      NEO4J_AUTH: neo4j/hercare-demo-password
+    ports: ["7474:7474"]
+    volumes: ["hercare_neo4j:/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+volumes:
+  hercare_sqlite:
+  hercare_neo4j:

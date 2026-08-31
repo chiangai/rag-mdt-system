@@ -29,4 +29,6 @@ claude.md
 
 # Data and SQLite
 *.db
+*.db.legacy
 *.json
+.worktrees/
